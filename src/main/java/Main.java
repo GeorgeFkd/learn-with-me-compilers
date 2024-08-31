@@ -69,25 +69,16 @@ public class Main {
 //    } else {
 //      runPrompt();
 //    }
-    String source = "var a = \"global a\";\n" +
-            "var b = \"global b\";\n" +
-            "var c = \"global c\";\n" +
-            "{\n" +
-            "  var a = \"outer a\";\n" +
-            "  var b = \"outer b\";\n" +
-            "  {\n" +
-            "    var a = \"inner a\";\n" +
-            "    print a;\n" +
-            "    print b;\n" +
-            "    print c;\n" +
-            "  }\n" +
-            "  print a;\n" +
+    String source =
+
+            "for (var b = 1; b < 100; b = b + 1) {\n" +
             "  print b;\n" +
-            "  print c;\n" +
-            "}\n" +
-            "print a;\n" +
-            "print b;\n" +
-            "print c;";
+            "}";
+//    String source = "var a = 1;\n" +
+//            "{\n" +
+//            "  var a = a + 2;\n" +
+//            "  print a;\n" +
+//            "}";
     run(source);
     Lox.hadError = false;
   }
