@@ -69,9 +69,7 @@ public class Main {
 //    } else {
 //      runPrompt();
 //    }
-    String source = "< < <= >= != ! . - + /* " +
-            "hello world" +
-            "*/ -";
+    String source = "(5-4)+2*8";
     run(source);
     Lox.hadError = false;
   }
@@ -86,13 +84,13 @@ public class Main {
     Lexer lexer = new Lexer(code);
     List<Token> tokens = lexer.scanTokens();
     Parser parser = new Parser(tokens);
-    Expr expression = parser.parse();
+    List<Stmt> statements = parser.parse();
 
     if(Lox.hadError) System.exit(65);
-    Lox.interpreter.interpret(expression);
+    Lox.interpreter.interpret(statements);
     if(Lox.hadRuntimeError) System.exit(70);
 
-    System.out.println(expression);
+    System.out.println(statements);
 //
 //    for(Token t: tokens) {
 //      System.out.println(t);

@@ -1,13 +1,22 @@
-public class Interpreter implements Expr.Visitor<Object>{
+import java.util.List;
 
-    void interpret(Expr expression){
+public class Interpreter implements Expr.Visitor<Object>,Stmt.Visitor<Void>{
+
+    private Environment environment = new Environment();
+
+    void interpret(List<Stmt> statements){
         try {
-            Object value = evaluate(expression);
-            System.out.println(stringify(value));
+            for(Stmt s: statements){
+                execute(s);
+            }
         }catch (RuntimeError e){
             Lox.runtimeError(e);
         }
     }
+    private void execute(Stmt s){
+        s.accept(this);
+    }
+
 
     private String stringify(Object object){
         if(object == null) return "nil";
@@ -26,7 +35,9 @@ public class Interpreter implements Expr.Visitor<Object>{
 
     @Override
     public Object visitAssignExpr(Expr.Assign expr) {
-        return null;
+        Object value = evaluate(expr.value);
+        environment.assign(expr.name,value);
+        return value;
     }
 
     @Override
@@ -150,7 +161,7 @@ public class Interpreter implements Expr.Visitor<Object>{
 
     @Override
     public Object visitVariableExpr(Expr.Variable expr) {
-        return null;
+        return environment.get(expr.name);
     }
 
     private Object evaluate(Expr expr){
@@ -173,4 +184,30 @@ public class Interpreter implements Expr.Visitor<Object>{
         if(left instanceof Double && right instanceof Double) return;
         throw new RuntimeError(operator,"Operands must be numbers.");
     }
+
+    @Override
+    public Void visitExpressionStmt(Stmt.Expression stmt) {
+        evaluate(stmt.expression);
+        return null;
+    }
+
+    @Override
+    public Void visitPrintStmt(Stmt.Print stmt) {
+        Object value = evaluate(stmt.expression);
+        System.out.println(stringify(value));
+        return null;
+    }
+
+    @Override
+    public Void visitVarStmt(Stmt.Var stmt) {
+        Object value = null;
+        if(stmt.initializer != null) {
+            value = evaluate(stmt.initializer);
+        }
+
+        environment.define(stmt.name.lexeme,value);
+        return null;
+    }
+
+
 }
