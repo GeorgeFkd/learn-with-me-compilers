@@ -3,7 +3,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class Scanner {
+public class Lexer {
 
     private final String sourceCode;
     private final List<Token> tokens = new ArrayList<>();
@@ -34,7 +34,7 @@ public class Scanner {
     }
 
 
-    Scanner(String sourceCode){
+    Lexer(String sourceCode){
         this.sourceCode = sourceCode;
     }
 

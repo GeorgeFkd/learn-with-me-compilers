@@ -5,7 +5,6 @@ import java.nio.file.Paths;
 import java.util.List;
 
 public class Main {
-
  /*
   program -> declaration* EOF;
   declaration -> classDecl
@@ -74,6 +73,7 @@ public class Main {
             "hello world" +
             "*/ -";
     run(source);
+    Lox.hadError = false;
   }
 
 
@@ -83,12 +83,18 @@ public class Main {
   }
 
   private static void run(String code){
-    Scanner scanner = new Scanner(code);
-    List<Token> tokens = scanner.scanTokens();
+    Lexer lexer = new Lexer(code);
+    List<Token> tokens = lexer.scanTokens();
+    Parser parser = new Parser(tokens);
+    Expr expression = parser.parse();
 
-    for(Token t: tokens) {
-      System.out.println(t);
-    }
+    if(Lox.hadError) return;
+
+    System.out.println(expression);
+//
+//    for(Token t: tokens) {
+//      System.out.println(t);
+//    }
   }
 
   private static void runPrompt() {
