@@ -88,7 +88,9 @@ public class Main {
     Parser parser = new Parser(tokens);
     Expr expression = parser.parse();
 
-    if(Lox.hadError) return;
+    if(Lox.hadError) System.exit(65);
+    Lox.interpreter.interpret(expression);
+    if(Lox.hadRuntimeError) System.exit(70);
 
     System.out.println(expression);
 //
