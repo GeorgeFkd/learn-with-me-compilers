@@ -69,11 +69,18 @@ public class Main {
 //    } else {
 //      runPrompt();
 //    }
-    String source =
-
-            "for (var b = 1; b < 100; b = b + 1) {\n" +
-            "  print b;\n" +
+    String source = "fun fib(n) {\n" +
+            "  if (n <= 1) return n;\n" +
+            "  return fib(n - 2) + fib(n - 1);\n" +
+            "}\n" +
+            "\n" +
+            "for (var i = 0; i < 20; i = i + 1) {\n" +
+            "  print fib(i);\n" +
             "}";
+//    String source =
+//            "for (var b = 1; b < 100; b = b + 1) {\n" +
+//            "  print b;\n" +
+//            "}";
 //    String source = "var a = 1;\n" +
 //            "{\n" +
 //            "  var a = a + 2;\n" +
@@ -96,6 +103,10 @@ public class Main {
     List<Stmt> statements = parser.parse();
 
     if(Lox.hadError) System.exit(65);
+    Resolver resolver = new Resolver(Lox.interpreter);
+    resolver.resolve(statements);
+    if(Lox.hadError) return;
+
     Lox.interpreter.interpret(statements);
     if(Lox.hadRuntimeError) System.exit(70);
 
