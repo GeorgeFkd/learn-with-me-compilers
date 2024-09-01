@@ -69,14 +69,14 @@ public class Main {
 //    } else {
 //      runPrompt();
 //    }
-    String source = "fun fib(n) {\n" +
-            "  if (n <= 1) return n;\n" +
-            "  return fib(n - 2) + fib(n - 1);\n" +
-            "}\n" +
-            "\n" +
-            "for (var i = 0; i < 20; i = i + 1) {\n" +
-            "  print fib(i);\n" +
-            "}";
+//    String source = "fun fib(n) {\n" +
+//            "  if (n <= 1) return n;\n" +
+//            "  return fib(n - 2) + fib(n - 1);\n" +
+//            "}\n" +
+//            "\n" +
+//            "for (var i = 0; i < 20; i = i + 1) {\n" +
+//            "  print fib(i);\n" +
+//            "}";
 //    String source =
 //            "for (var b = 1; b < 100; b = b + 1) {\n" +
 //            "  print b;\n" +
@@ -86,6 +86,29 @@ public class Main {
 //            "  var a = a + 2;\n" +
 //            "  print a;\n" +
 //            "}";
+//    String source = "class DevonshireCream {\n" +
+//            "  serveOn() {\n" +
+//            "    return \"Scones\";\n" +
+//            "  }\n" +
+//            "}\n" +
+//            "\n" +
+//            "print DevonshireCream; // Prints \"DevonshireCream\".";
+//    String source = "class Bacon {\n" +
+//            "  eat() {\n" +
+//            "    print \"Crunch crunch crunch!\";\n" +
+//            "  }\n" +
+//            "}\n" +
+//            "\n" +
+//            "Bacon().eat(); // Prints \"Crunch crunch crunch!\".";
+    String source = "class Doughnut {\n" +
+            "  cook() {\n" +
+            "    print \"Fry until golden brown.\";\n" +
+            "  }\n" +
+            "}\n" +
+            "\n" +
+            "class BostonCream < Doughnut {}\n" +
+            "\n" +
+            "BostonCream().cook();";
     run(source);
     Lox.hadError = false;
   }
