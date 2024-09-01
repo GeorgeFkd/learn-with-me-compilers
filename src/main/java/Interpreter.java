@@ -7,9 +7,13 @@ public class Interpreter implements Expr.Visitor<Object>,Stmt.Visitor<Void>{
     final Environment globals = new Environment();
     private Environment environment = globals;
     private final Map<Expr,Integer> locals = new HashMap<>();
-
+    private LoxErrorHandler errorHandler = new LoxStdOutErrorHandler();
 
     Interpreter(){
+        initializeGlobalFunctionsInEnvironment();
+    }
+
+    void initializeGlobalFunctionsInEnvironment() {
         globals.define("clock", new LoxCallable() {
             @Override
             public Object call(Interpreter interpreter, List<Object> arguments) {
@@ -26,6 +30,11 @@ public class Interpreter implements Expr.Visitor<Object>,Stmt.Visitor<Void>{
         });
     }
 
+    Interpreter(LoxErrorHandler errorHandler){
+        initializeGlobalFunctionsInEnvironment();
+        this.errorHandler = errorHandler;
+    }
+
 
     void interpret(List<Stmt> statements){
         try {
@@ -33,7 +42,7 @@ public class Interpreter implements Expr.Visitor<Object>,Stmt.Visitor<Void>{
                 execute(s);
             }
         }catch (RuntimeError e){
-            Lox.runtimeError(e);
+            errorHandler.runtimeError(e);
         }
     }
     private void execute(Stmt s){

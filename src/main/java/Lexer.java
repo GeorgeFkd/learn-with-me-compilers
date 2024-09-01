@@ -10,7 +10,7 @@ public class Lexer {
     private int start = 0;
     private int current = 0;
     private int line = 1;
-
+    private LoxErrorHandler errorHandler = new LoxStdOutErrorHandler();
     private static final Map<String,TokenType> keywords;
 
     static {
@@ -37,7 +37,10 @@ public class Lexer {
     Lexer(String sourceCode){
         this.sourceCode = sourceCode;
     }
-
+    Lexer(String sourceCode,LoxErrorHandler errorHandler){
+        this.sourceCode = sourceCode;
+        this.errorHandler = errorHandler;
+    }
     List<Token> scanTokens() {
         while(!isAtEnd()){
             start = current;
@@ -55,22 +58,9 @@ public class Lexer {
         current++;
         return true;
     }
-
-    /*
-    NUMBER -> DIGIT+ ( "." DIGIT+ )? ;
-    STRING -> "\"" <any char except "\"" >* "\"";
-    IDENTIFIER -> ALPHA ( ALPHA | DIGIT )* ;
-    ALPHA -> "a" ... "z" | "A" ... "Z" | "_"
-    DIGIT -> "0" ... "9"
-
-     */
     private void scanToken() {
-        //principle of maximal munch:
-        //When two lexical grammar rules can both match a chunk of code that the scanner is looking at, whichever one matches the most characters wins.
         char c = advance();
         switch (c) {
-            //we do those first as they dont have dependencies on other characters
-            //being parsed
             case '(' : addToken(TokenType.LEFT_PAREN);break;
             case ')' : addToken(TokenType.RIGHT_PAREN);break;
             case '{' : addToken(TokenType.LEFT_BRACE); break;
@@ -127,7 +117,7 @@ public class Lexer {
                 }else if(isAlpha(c)){
                     identifier();
                 } else {
-                    Lox.error(line,"Unexpected character");
+                    errorHandler.error(line,"Unexpected character");
                 }
                 break;
         }
@@ -137,7 +127,6 @@ public class Lexer {
         //we have already checked that the first character isAlpha(c)
         //that's why we can use isAlphaNumeric
         while (isAlphaNumeric(peek())) advance();
-        //We check if it is a keyword and add the correct TokenType
         String text = sourceCode.substring(start,current);
         TokenType type = keywords.get(text);
         if(type == null) type = TokenType.IDENTIFIER;
@@ -160,9 +149,7 @@ public class Lexer {
 
         //todo if the peekNext digit is not a digit we could add some extra error handling
         if(peek() == '.'  && isDigit(peekNext())){
-            //consuming the "."
             advance();
-
             while (isDigit(peek())) advance();
         }
 
@@ -187,12 +174,11 @@ public class Lexer {
         }
 
         if(isAtEnd()){
-          Lox.error(line,"Unterminated string");
+          errorHandler.error(line,"Unterminated string");
           return;
         }
 
         advance();
-        //skipping the opening and closing string quotes
         //also this is where we could unescape characters
         //escaping is: some chars have special meaning,
         //if we escape them no special meaning otherwise use special meaning
@@ -202,7 +188,6 @@ public class Lexer {
 
     private char peek() {
         if(isAtEnd())return '\0';
-        //lookahead
         return sourceCode.charAt(current);
     }
 

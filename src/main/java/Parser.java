@@ -1,21 +1,21 @@
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.List;
 
 
 public class Parser {
     private final List<Token> tokens;
     private int current = 0;
-    private TokenType t = TokenType.EOF;
+    private LoxErrorHandler errorHandler = new LoxStdOutErrorHandler();
+
     private static class ParseError extends RuntimeException{};
     Parser(List<Token> tokens) {
         this.tokens = tokens;
     }
-
-    //The parser is the same vibe with the Lexer(Scanner), it just works
-    //on tokens
-
+    Parser(List<Token> tokens,LoxErrorHandler errorHandler){
+        this.tokens = tokens;
+        this.errorHandler = errorHandler;
+    }
 
     private Expr expression() {
         return assignment();
@@ -44,9 +44,6 @@ public class Parser {
 
     private Expr assignment() {
         Expr expr = or();
-
-        //did not understand this section that match
-        //instead of looping we got recursion
         if(match(TokenType.EQUAL)){
             Token equals = previous();
             Expr value = assignment();
@@ -59,7 +56,7 @@ public class Parser {
                 return new Expr.Set(get.object,get.name,value);
             }
 
-            error(equals,"Invalid assignment target.");
+            errorHandler.error(equals,"Invalid assignment target.");
             return null;
         } else {
             return expr;
@@ -67,20 +64,15 @@ public class Parser {
     }
 
     private Expr equality() {
-        //equality → comparison ( ( "!=" | "==" ) comparison )* ;
-
         Expr expr = comparison();
         while(match(TokenType.BANG_EQUAL,TokenType.EQUAL_EQUAL)){
             Token operator = previous();
             Expr right = comparison();
-            //we do this so we can make a big nested expression that has
-            //the previous ones as the left operand
             expr = new Expr.Binary(expr,operator,right);
         }
         return expr;
     }
     private Expr comparison() {
-        //comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
         Expr expr = term();
         while(match(TokenType.GREATER,TokenType.GREATER_EQUAL,TokenType.LESS,TokenType.LESS_EQUAL)){
             Token operator = previous();
@@ -92,7 +84,6 @@ public class Parser {
     }
 
     private Expr term() {
-        //term → factor ( ( "-" | "+" ) factor )* ;
         Expr expr = factor();
         while(match(TokenType.MINUS,TokenType.PLUS)){
             Token operator = previous();
@@ -104,7 +95,6 @@ public class Parser {
 
     private Expr factor() {
         Expr expr = unary();
-
         while(match(TokenType.SLASH,TokenType.STAR)){
             Token operator = previous();
             Expr right = unary();
@@ -255,8 +245,6 @@ public class Parser {
         return new Stmt.While(condition,body);
     }
 
-//    ifStmt         → "if" "(" expression ")" statement
-//            ( "else" statement )? ;
     private Stmt ifStatement() {
         consume(TokenType.LEFT_PAREN,"After if clause expected '('");
         Expr condition = expression();
@@ -294,8 +282,6 @@ public class Parser {
     }
 
     private Expr unary() {
-        //unary → ( "!" | "-" ) unary
-        //        | primary ;
         if(match(TokenType.BANG,TokenType.MINUS)){
             Token operator = previous();
             Expr right = unary();
@@ -308,14 +294,12 @@ public class Parser {
 
     private Expr call() {
         Expr expr = primary();
-
         while (true) {
             if(match(TokenType.LEFT_PAREN)){
                 expr = finishCall(expr);
             }else if(match(TokenType.DOT)){
                 Token name = consume(TokenType.IDENTIFIER,"Expect property name after '.' .");
                 expr = new Expr.Get(expr,name);
-
             }else {
                 break;
             }
@@ -328,13 +312,12 @@ public class Parser {
         if(!check(TokenType.RIGHT_PAREN)){
             do{
                 if(args.size() >= 255) {
-                    error(peek(),"Can't have more than 255 arguments");
+                    this.error(peek(),"Can't have more than 255 arguments");
                 }
                 args.add(expression());
             }while(match(TokenType.COMMA));
         }
         Token paren = consume(TokenType.RIGHT_PAREN,"Expect ')' after arguments list");
-
         return new Expr.Call(callee,paren,args);
     }
 
@@ -378,7 +361,7 @@ public class Parser {
 
     //When we want to synchronize, we throw that ParseError object.
     private ParseError error(Token token, String msg){
-        Lox.error(token,msg);
+        errorHandler.error(token,msg);
         return new ParseError();
     }
 

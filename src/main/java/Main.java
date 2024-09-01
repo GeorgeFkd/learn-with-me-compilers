@@ -61,14 +61,6 @@ public class Main {
 
 
   public static void main(String[] args) throws IOException{
-//    if(args.length > 1) {
-//      System.out.println("Usage: jlox [script]");
-//      System.exit(64);
-//    } else if (args.length == 1) {
-//      runJloxFile(args[0]);
-//    } else {
-//      runPrompt();
-//    }
 //    String source = "fun fib(n) {\n" +
 //            "  if (n <= 1) return n;\n" +
 //            "  return fib(n - 2) + fib(n - 1);\n" +
@@ -100,48 +92,39 @@ public class Main {
 //            "}\n" +
 //            "\n" +
 //            "Bacon().eat(); // Prints \"Crunch crunch crunch!\".";
-    String source = "class Doughnut {\n" +
-            "  cook() {\n" +
-            "    print \"Fry until golden brown.\";\n" +
-            "  }\n" +
-            "}\n" +
-            "\n" +
-            "class BostonCream < Doughnut {}\n" +
-            "\n" +
-            "BostonCream().cook();";
-    run(source);
-    Lox.hadError = false;
+//    String source = "class Doughnut {\n" +
+//            "  cook() {\n" +
+//            "    print \"Fry until golden brown.\";\n" +
+//            "  }\n" +
+//            "}\n" +
+//            "\n" +
+//            "class BostonCream < Doughnut {}\n" +
+//            "\n" +
+//            "BostonCream().cook();";
+//    LoxRunner.run(source);
   }
 
 
-  private static void runJloxFile(String filename) throws IOException {
-    byte[] bytes = Files.readAllBytes(Paths.get(filename));
-    run(new String(bytes, Charset.defaultCharset()));
-  }
-
-  private static void run(String code){
-    Lexer lexer = new Lexer(code);
-    List<Token> tokens = lexer.scanTokens();
-    Parser parser = new Parser(tokens);
-    List<Stmt> statements = parser.parse();
-
-    if(Lox.hadError) System.exit(65);
-    Resolver resolver = new Resolver(Lox.interpreter);
-    resolver.resolve(statements);
-    if(Lox.hadError) return;
-
-    Lox.interpreter.interpret(statements);
-    if(Lox.hadRuntimeError) System.exit(70);
-
-    System.out.println(statements);
+//  private static void runJloxFile(String filename) throws IOException {
+//    byte[] bytes = Files.readAllBytes(Paths.get(filename));
+//    run(new String(bytes, Charset.defaultCharset()));
+//  }
 //
-//    for(Token t: tokens) {
-//      System.out.println(t);
-//    }
-  }
-
-  private static void runPrompt() {
-
-  }
+//  private static void run(String code){
+//    Lexer lexer = new Lexer(code);
+//    List<Token> tokens = lexer.scanTokens();
+//    Parser parser = new Parser(tokens);
+//    List<Stmt> statements = parser.parse();
+//
+//    if(Lox.hadError) System.exit(65);
+//    Resolver resolver = new Resolver(Lox.interpreter);
+//    resolver.resolve(statements);
+//    if(Lox.hadError) return;
+//
+//    Lox.interpreter.interpret(statements);
+//    if(Lox.hadRuntimeError) System.exit(70);
+//
+//    System.out.println(statements);
+//  }
 
 }

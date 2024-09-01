@@ -6,7 +6,9 @@ import java.util.Stack;
 public class Resolver implements Expr.Visitor<Void>,Stmt.Visitor<Void>{
     private final Interpreter interpreter;
     private final Stack<Map<String,Boolean>> scopes = new Stack<>();
+    private LoxErrorHandler errorHandler = new LoxStdOutErrorHandler();
     private FunctionType currentFunction = FunctionType.NONE;
+
     private enum FunctionType {
         NONE,
         FUNCTION,
@@ -26,6 +28,11 @@ public class Resolver implements Expr.Visitor<Void>,Stmt.Visitor<Void>{
 
     public Resolver(Interpreter interpreter) {
         this.interpreter = interpreter;
+    }
+
+    public Resolver(Interpreter interpreter,LoxErrorHandler errorHandler){
+        this.interpreter = interpreter;
+        this.errorHandler = errorHandler;
     }
 
     @Override
@@ -86,9 +93,9 @@ public class Resolver implements Expr.Visitor<Void>,Stmt.Visitor<Void>{
     @Override
     public Void visitSuperExpr(Expr.Super expr) {
         if(currentClass == ClassType.NONE){
-            Lox.error(expr.keyword,"Can't use 'super' in a class with no superclass.");
+            errorHandler.error(expr.keyword,"Can't use 'super' in a class with no superclass.");
         } else if (currentClass != ClassType.SUBCLASS){
-            Lox.error(expr.keyword,"Can't use 'super' in a class with no superclass");
+            errorHandler.error(expr.keyword,"Can't use 'super' in a class with no superclass");
         }
 
         resolveLocal(expr,expr.keyword);
@@ -98,7 +105,7 @@ public class Resolver implements Expr.Visitor<Void>,Stmt.Visitor<Void>{
     @Override
     public Void visitThisExpr(Expr.This expr) {
         if(currentClass == ClassType.NONE) {
-            Lox.error(expr.keyword,"Can't use 'this' outside of a class");
+            errorHandler.error(expr.keyword,"Can't use 'this' outside of a class");
             return null;
         }
         resolveLocal(expr,expr.keyword);
@@ -116,7 +123,7 @@ public class Resolver implements Expr.Visitor<Void>,Stmt.Visitor<Void>{
         //this condition basically says if the variable is declared but not resolved
         //that means we are trying to do sth like var a = a + 2
         if(!scopes.isEmpty() && scopes.peek().get(expr.name.lexeme) == Boolean.FALSE){
-            Lox.error(expr.name,"Can't read local variable in its own initializer.");
+            errorHandler.error(expr.name,"Can't read local variable in its own initializer.");
         }
 
         resolveLocal(expr,expr.name);
@@ -160,7 +167,7 @@ public class Resolver implements Expr.Visitor<Void>,Stmt.Visitor<Void>{
         if(scopes.isEmpty()) return;
         Map<String,Boolean> scope = scopes.peek();
         if(scope.containsKey(name.lexeme)){
-            Lox.error(name,"Already a variable with this name in this scope");
+            errorHandler.error(name,"Already a variable with this name in this scope");
         }
         scope.put(name.lexeme,false);
     }
@@ -239,11 +246,11 @@ public class Resolver implements Expr.Visitor<Void>,Stmt.Visitor<Void>{
     @Override
     public Void visitReturnStmt(Stmt.Return stmt) {
         if(currentFunction == FunctionType.NONE) {
-            Lox.error(stmt.keyword,"Can't return from top-level code.");
+            errorHandler.error(stmt.keyword,"Can't return from top-level code.");
         }
         if(stmt.value != null) {
             if(currentFunction == FunctionType.INITIALIZER){
-                Lox.error(stmt.keyword,"Can't return a value from an initializer");
+                errorHandler.error(stmt.keyword,"Can't return a value from an initializer");
             }
             resolve(stmt.value);
         }
@@ -260,7 +267,7 @@ public class Resolver implements Expr.Visitor<Void>,Stmt.Visitor<Void>{
         define(stmt.name);
 
         if(stmt.superclass != null && stmt.name.lexeme.equals(stmt.superclass.name.lexeme)){
-            Lox.error(stmt.superclass.name,"A class can't inherit from itself.");
+            errorHandler.error(stmt.superclass.name,"A class can't inherit from itself.");
         }
 
         if(stmt.superclass != null){
