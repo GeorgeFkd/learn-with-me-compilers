@@ -1,17 +1,12 @@
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class Interpreter implements Expr.Visitor<Object>,Stmt.Visitor<Void>{
     final Environment globals = new Environment();
     private Environment environment = globals;
     private final Map<Expr,Integer> locals = new HashMap<>();
-    private LoxErrorHandler errorHandler = new LoxStdOutErrorHandler();
+    private final LoxErrorHandler errorHandler;
+    private final PrintHandler printHandler;
 
-    Interpreter(){
-        initializeGlobalFunctionsInEnvironment();
-    }
 
     void initializeGlobalFunctionsInEnvironment() {
         globals.define("clock", new LoxCallable() {
@@ -30,9 +25,16 @@ public class Interpreter implements Expr.Visitor<Object>,Stmt.Visitor<Void>{
         });
     }
 
-    Interpreter(LoxErrorHandler errorHandler){
+    Interpreter(LoxErrorHandler errorHandler,PrintHandler printHandler){
         initializeGlobalFunctionsInEnvironment();
         this.errorHandler = errorHandler;
+        this.printHandler = printHandler;
+    }
+
+    Interpreter() {
+        initializeGlobalFunctionsInEnvironment();
+        this.errorHandler = new LoxStdOutErrorHandler();
+        this.printHandler = new StdOutPrintHandler();
     }
 
 
@@ -59,6 +61,10 @@ public class Interpreter implements Expr.Visitor<Object>,Stmt.Visitor<Void>{
                 text = text.substring(0, text.length() - 2);
             }
             return text;
+        }
+
+        if (object instanceof String) {
+            return (String)object;
         }
 
         return object.toString();
@@ -132,14 +138,12 @@ public class Interpreter implements Expr.Visitor<Object>,Stmt.Visitor<Void>{
 
         }
 
-
         return null;
     }
 
     private boolean isEqual(Object a,Object b){
         if (a == null && b == null) return true;
         if (a == null) return false;
-
         return a.equals(b);
     }
 
@@ -292,7 +296,7 @@ public class Interpreter implements Expr.Visitor<Object>,Stmt.Visitor<Void>{
     @Override
     public Void visitPrintStmt(Stmt.Print stmt) {
         Object value = evaluate(stmt.expression);
-        System.out.println(stringify(value));
+        printHandler.print(stringify(value));
         return null;
     }
 
