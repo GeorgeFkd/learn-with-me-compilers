@@ -48,7 +48,8 @@ public class Interpreter implements Expr.Visitor<Object>,Stmt.Visitor<Void>{
         }
     }
     private void execute(Stmt s){
-        s.accept(this);
+        if(s != null)s.accept(this);
+
     }
 
 

@@ -204,7 +204,7 @@ public class Resolver implements Expr.Visitor<Void>,Stmt.Visitor<Void>{
     }
 
     void resolve(Stmt stmt) {
-        stmt.accept(this);
+        if(stmt != null) stmt.accept(this);
     }
 
     void resolve(Expr expr){

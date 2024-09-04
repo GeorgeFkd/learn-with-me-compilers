@@ -30,9 +30,9 @@ public class LoxRunner {
         LoxErrorHandler errorHandler = this.errorHandler.orElse(new LoxStdOutErrorHandler());
         PrintHandler printHandler = this.printHandler.orElse(new StdOutPrintHandler());
         Interpreter interpreter = new Interpreter(errorHandler,printHandler);
-        Lexer lexer = new Lexer(code);
+        Lexer lexer = new Lexer(code,errorHandler);
         List<Token> tokens = lexer.scanTokens();
-        Parser parser = new Parser(tokens);
+        Parser parser = new Parser(tokens,errorHandler);
         List<Stmt> statements = parser.parse();
 
         if(errorHandler.hadError()) System.exit(65);

@@ -28,6 +28,7 @@ public class LoxTests {
 
      */
     LoxRunner runner = new LoxRunner();
+    Lexer lexer = new Lexer("");
     LoxErrorHandler errorHandler = new LoxStdOutErrorHandler();
     PrintHandler printHandler = new StdOutPrintHandler();
     @BeforeTest(alwaysRun = true)
@@ -35,10 +36,16 @@ public class LoxTests {
         errorHandler = new LoxStdOutErrorHandler();
         printHandler = new StdOutPrintHandler();
         runner = new LoxRunner().withErrorHandler(errorHandler).withPrintHandler(printHandler);
+
     }
 
     private void runSourceCode(String code){
+        if(code.isEmpty()) Assert.fail("No Code was provided");
         runner.run(code);
+    }
+
+    private void assertErrorsExist(String caseDescription) {
+        Assert.assertFalse(errorHandler.getErrorMessages().isEmpty(),caseDescription + " should contain errors");
     }
 
     private void assertNoErrors(String caseDescription){
@@ -50,6 +57,8 @@ public class LoxTests {
     }
 
     private void assertMessagesExist(String caseDescription,String ...messages){
+        //means a mistake was made
+        if(messages.length == 0) Assert.fail();
         for(String m: messages){
             Assert.assertTrue(printHandler.getStdOutMessages().stream().anyMatch(msg->msg.contains(m)),caseDescription + " should contain the messages: " + messages);
         }
@@ -60,7 +69,37 @@ public class LoxTests {
     @Test(testName="Lexer works as expected, simple happy path")
     public void testLexer() {
         String sourceCode = ". and or while if";
+//        lexer.scanTokens()
 
+    }
+
+    @Test(testName = "Functions can capture outside closures")
+    public void testFunctionClosures(){
+        String caseDescription = "Functions and Closures: Simple Case";
+        String sourceCode = "var a = 5; fun addFive(b) { return a + b; } print(addFive(4));";
+        runSourceCode(sourceCode);
+        assertNoErrors(caseDescription);
+        assertPrintMessagesNonEmpty(caseDescription);
+        assertMessagesExist(caseDescription,"9");
+        System.out.println(System.getProperty("java.ext.dirs"));
+    }
+
+    @Test(testName = "Nested Functions and Closures")
+    public void testNestedFunctions() {
+        String caseDescr = "Nested Functions with closures";
+        String sourceCode = "fun run(a) { var b = 1; fun addB(c) { return c + b + a; }  return addB(5); } print(run(1));";
+        runSourceCode(sourceCode);
+        assertNoErrors(caseDescr);
+        assertPrintMessagesNonEmpty(caseDescr);
+        assertMessagesExist(caseDescr,"7");
+    }
+
+    @Test(testName="Semicolon omission produces error")
+    public void testSemicolons(){
+        String caseDescr = "<Semicolons>";
+        String sourceCode = "var a = 1";
+        runSourceCode(sourceCode);
+        assertErrorsExist(caseDescr);
     }
 
     @Test(testName="Parser works as expected, simple happy path")
@@ -70,7 +109,12 @@ public class LoxTests {
 
     @Test(testName="If Statements work properly")
     public void testIfStatements(){
-
+        String caseDescr = "<If Statements>";
+        String sourceCode = "if(true) print(4); else print(3);";
+        runSourceCode(sourceCode);
+        assertNoErrors(caseDescr);
+        assertPrintMessagesNonEmpty(caseDescr);
+        assertMessagesExist(caseDescr,"4");
     }
 
     @Test(testName="Print statements work properly")
@@ -85,7 +129,12 @@ public class LoxTests {
 
     @Test(testName="While statements work properly")
     public void testWhileStatements() {
-
+        String caseDescr = "<While> statements";
+        String sourceCode = "var a = 1; while(a < 5) { print(a); a = a + 1; }";
+        runSourceCode(sourceCode);
+        assertNoErrors(caseDescr);
+        assertPrintMessagesNonEmpty(caseDescr);
+        assertMessagesExist(caseDescr,"1","2","3","4");
     }
 
     @Test(testName="For statements work properly")
@@ -123,6 +172,13 @@ public class LoxTests {
 
     @Test(testName="Math Expressions work properly")
     public void testMathExpressions() {
+        //addition,multiplication,division,grouping,exponentiation
+        String caseDescr = "Mathematical Expressions";
+        String sourceCode = "var a = 3 + 8 ; print(a) ; var b = 3 * 8; print(b) ; var c = 12/3 ; print(c) ; var d = 10 - 4; print(d) ;";
+        runSourceCode(sourceCode);
+        assertNoErrors(caseDescr);
+        assertPrintMessagesNonEmpty(caseDescr);
+        assertMessagesExist(caseDescr,"11","24","4","6");
 
     }
 
@@ -142,7 +198,7 @@ public class LoxTests {
         runSourceCode(sourceCode);
         assertNoErrors(inheritanceCase);
         assertPrintMessagesNonEmpty(inheritanceCase);
-        assertMessagesExist("Fry until golden brown");
+        assertMessagesExist(inheritanceCase,"Fry until golden brown");
 
 
         //constructors
@@ -168,25 +224,49 @@ public class LoxTests {
 
     }
 
-//    String source = "var a = 1;\n" +
-//            "{\n" +
-//            "  var a = a + 2;\n" +
-//            "  print a;\n" +
-//            "}";
-//    String source = "class DevonshireCream {\n" +
-//            "  serveOn() {\n" +
-//            "    return \"Scones\";\n" +
-//            "  }\n" +
-//            "}\n" +
-//            "\n" +
-//            "print DevonshireCream; // Prints \"DevonshireCream\".";
-    String source = "class Bacon {\n" +
-            "  eat() {\n" +
-            "    print \"Crunch crunch crunch!\";\n" +
-            "  }\n" +
-            "}\n" +
-            "\n" +
-            "Bacon().eat(); // Prints \"Crunch crunch crunch!\".";
+    @Test(testName = "Class Declaration works properly")
+    public void testClassDecl() {
+        String caseDescr = "<Class Statement>";
+        String sourceCode = "class DevonshireCream {\n" +
+                "  serveOn() {\n" +
+                "    return \"Scones\";\n" +
+                "  }\n" +
+                "}\n" +
+                "\n" +
+                "print DevonshireCream; // Prints \"DevonshireCream\"";
+        runSourceCode(sourceCode);
+        assertNoErrors(caseDescr);
+        assertPrintMessagesNonEmpty(caseDescr);
+        assertMessagesExist(caseDescr,"DevonshireCream");
+    }
+
+    @Test(testName= "Scoping works properly")
+    public void testScoping(){
+        String caseDescr = "<Scopes and Closures>";
+        String sourceCode = "var b = 1;\n" +
+                "{\n" +
+                "  var a = b + 2;\n" +
+                "  print a;\n" +
+                "}";
+        runSourceCode(sourceCode);
+        assertNoErrors(caseDescr);
+        assertPrintMessagesNonEmpty(caseDescr);
+        assertMessagesExist(caseDescr,"3");
+    }
+
+    @Test(testName="Referencing a variable in its initializer produces an error")
+    public void testInitRefProducesError() {
+        String caseDescr = "Variable Reference edge case";
+        //this produces an error as we can't ref a variable in its initializer
+        String source = "var a = 1;\n" +
+                "{\n" +
+                "  var a = a + 2;\n" +
+                "  print a;\n" +
+                "}";
+        runSourceCode(source);
+        assertErrorsExist(caseDescr);
+    }
+
 
 
 
